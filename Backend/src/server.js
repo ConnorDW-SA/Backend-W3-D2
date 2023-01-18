@@ -8,6 +8,7 @@ import {
   notFoundHandler,
   genericErrorHandler
 } from "./errorHandlers.js";
+import dotenv from "dotenv";
 
 const server = express();
 const port = process.env.PORT || 3001;
