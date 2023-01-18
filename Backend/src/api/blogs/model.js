@@ -15,7 +15,14 @@ const BlogSchema = new Schema(
       name: { type: String, required: true },
       avatar: { type: String, required: true }
     },
-    content: { type: String, required: true }
+    content: { type: String, required: true },
+    comments: [
+      {
+        commenter: String,
+        comment: String,
+        commentDate: Date
+      }
+    ]
   },
   { timestamps: true }
 );
