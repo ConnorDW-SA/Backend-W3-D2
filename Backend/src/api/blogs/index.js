@@ -47,10 +47,7 @@ blogRouter.get("/", async (req, res, next) => {
 
 blogRouter.get("/:id", async (req, res, next) => {
   try {
-    const blog = await blogModel.findById(req.params.id).populate({
-      path: "author",
-      select: "name avatar"
-    });
+    const blog = await blogModel.findById(req.params.id).populate("Author");
     if (blog) {
       res.send(blog);
     } else {
