@@ -3,11 +3,13 @@ import listEndpoints from "express-list-endpoints";
 import cors from "cors";
 import mongoose from "mongoose";
 import blogRouter from "./api/blogs/index.js";
+import authorRouter from "./api/authors/index.js";
 import {
   badRequestHandler,
   notFoundHandler,
   genericErrorHandler
 } from "./errorHandlers.js";
+import userRouter from "./api/users/index.js";
 
 const server = express();
 const port = process.env.PORT || 3001;
@@ -16,6 +18,8 @@ server.use(cors());
 server.use(express.json());
 
 server.use("/blogs", blogRouter);
+server.use("/authors", authorRouter);
+server.use("/users", userRouter);
 
 server.use(badRequestHandler);
 server.use(notFoundHandler);

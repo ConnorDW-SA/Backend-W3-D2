@@ -1,9 +1,29 @@
 import express from "express";
 import createHttpError from "http-errors";
 import blogModel from "./model.js";
-import commentModel from "../comments/model.js";
+import q2m from "query-to-mongo";
 
 const blogRouter = express.Router();
+
+blogRouter.get("/pages", async (req, res, next) => {
+  try {
+    const mongoQuery = q2m(req.query);
+
+    const total = await blogModel.countDocuments(mongoQuery.criteria);
+    const blogs = await blogModel
+      .find(mongoQuery.criteria, mongoQuery.options.fields)
+      .skip(mongoQuery.options.skip)
+      .limit(mongoQuery.options.limit)
+      .sort(mongoQuery.options.sort);
+    res.send({
+      links: mongoQuery.links("http://localhost:3001/blogs", total),
+      totalPages: Math.ceil(total / mongoQuery.options.limit),
+      blogs
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 blogRouter.get("/", async (req, res, next) => {
   try {
