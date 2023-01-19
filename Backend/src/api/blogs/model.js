@@ -12,15 +12,16 @@ const BlogSchema = new Schema(
       unit: { type: String, required: true }
     },
     author: {
-      name: { type: String, required: true },
-      avatar: { type: String, required: true }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Author",
+      required: true
     },
+    likes: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     content: { type: String, required: true },
     comments: [
       {
-        commenter: String,
-        comment: String,
-        commentDate: Date
+        comment: { type: String, required: true },
+        rate: { type: Number, required: true }
       }
     ]
   },
