@@ -6,7 +6,7 @@ import userModel from "../users/model.js";
 
 const blogRouter = express.Router();
 
-blogRouter.get("/pages", async (req, res, next) => {
+blogRouter.get("/", async (req, res, next) => {
   try {
     const mongoQuery = q2m(req.query);
 
