@@ -2,7 +2,6 @@ import express from "express";
 import createHttpError from "http-errors";
 import blogModel from "./model.js";
 import q2m from "query-to-mongo";
-import userModel from "../users/model.js";
 
 const blogRouter = express.Router();
 

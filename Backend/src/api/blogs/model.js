@@ -8,22 +8,15 @@ const BlogSchema = new Schema(
     title: { type: String, required: true },
     cover: { type: String, required: true },
     readTime: {
-      value: { type: Number, required: true },
-      unit: { type: String, required: true }
+      value: { type: Number },
+      unit: { type: String }
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Author",
       required: true
     },
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    content: { type: String, required: true },
-    comments: [
-      {
-        comment: { type: String, required: true },
-        rate: { type: Number, required: true }
-      }
-    ]
+    content: { type: String, required: true }
   },
   { timestamps: true }
 );

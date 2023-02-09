@@ -11,7 +11,6 @@ import {
   unauthorizedHandler,
   forbiddenHandler
 } from "./errorHandlers.js";
-import userRouter from "./api/users/index.js";
 
 const server = express();
 const port = process.env.PORT || 3001;
@@ -21,7 +20,6 @@ server.use(express.json());
 
 server.use("/blogs", blogRouter);
 server.use("/authors", authorRouter);
-server.use("/users", userRouter);
 
 server.use(badRequestHandler);
 server.use(notFoundHandler);
