@@ -1,19 +1,44 @@
 import express from "express";
 import createHttpError from "http-errors";
 import authorModel from "./model.js";
+import BlogModel from "../blogs/model.js";
+import q2m from "query-to-mongo";
+
+import { basicAuthMiddleware } from "../lib/auth/basicAuth";
+import { JwtAuthMiddleware } from "../lib/auth/jwtAuth.js";
+import { adminOnlyMiddleware } from "../lib/auth/adminOnly.js";
+import { createAccessToken } from "../lib/auth/tools.js";
+import passport from "passport";
 
 const authorRouter = express.Router();
 
-authorRouter.get("/", async (req, res, next) => {
-  try {
-    const authors = await authorModel.find();
-    res.send(authors);
-  } catch (error) {
-    next(error);
-  }
-});
+// ---------- endpoints
 
-authorRouter.post("/", async (req, res, next) => {
+authorRouter.get(
+  "/",
+  JwtAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const mongoQuery = q2m(req.query);
+      const total = await authorModel.countDocuments(mongoQuery.criteria);
+      const authors = await authorModel
+        .find(mongoQuery.criteria, mongoQuery.options.fields)
+        .limit(mongoQuery.options.limit)
+        .skip(mongoQuery.options.skip)
+        .sort(mongoQuery.options.sort);
+      res.send({
+        links: mongoQuery.links("http://localhost:3001/authors", total),
+        totalPages: Math.ceil(total / mongoQuery.options.limit),
+        authors
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+authorRouter.post("/register", async (req, res, next) => {
   try {
     const newAuthor = new authorModel(req.body);
     const { _id } = await newAuthor.save();
@@ -22,6 +47,46 @@ authorRouter.post("/", async (req, res, next) => {
     next(error);
   }
 });
+
+authorRouter.get(
+  "/googleLogin",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+authorRouter.get(
+  "/googleRedirect",
+  passport.authenticate("google", { session: false }),
+  async (req, res, next) => {
+    res.redirect(`${process.env.FE_URL}/?accessToken=${req.user.accessToken}`);
+  }
+);
+
+authorRouter.get("/me/blogs", basicAuthMiddleware, async (req, res, next) => {
+  try {
+    const posts = await BlogModel.find({ author: req.author._id });
+    res.send(posts);
+  } catch (error) {
+    next(error);
+  }
+});
+
+authorRouter.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const author = await authorModel.checkCredentials(email, password);
+    if (author) {
+      const payload = { _id: author._id, role: author.role };
+      const accessToken = await createAccessToken(payload);
+      res.send({ accessToken });
+    } else {
+      next(createHttpError(401, "Incorrect credentials"));
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+authorRouter.put();
 
 authorRouter.get("/:id", async (req, res, next) => {
   try {

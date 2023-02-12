@@ -4,6 +4,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import blogRouter from "./api/blogs/index.js";
 import authorRouter from "./api/authors/index.js";
+
 import {
   badRequestHandler,
   notFoundHandler,
@@ -11,12 +12,14 @@ import {
   unauthorizedHandler,
   forbiddenHandler
 } from "./errorHandlers.js";
+import passport from "passport";
 
 const server = express();
 const port = process.env.PORT || 3001;
 
 server.use(cors());
 server.use(express.json());
+server.use(passport.initialize());
 
 server.use("/blogs", blogRouter);
 server.use("/authors", authorRouter);
