@@ -4,9 +4,9 @@ import authorModel from "./model.js";
 import BlogModel from "../blogs/model.js";
 import q2m from "query-to-mongo";
 
-import { basicAuthMiddleware } from "../lib/auth/basicAuth";
+import { authMiddleware } from "../lib/auth/basicAuth.js";
 import { JwtAuthMiddleware } from "../lib/auth/jwtAuth.js";
-import { adminOnlyMiddleware } from "../lib/auth/adminOnly.js";
+import { adminMiddleware } from "../lib/auth/adminOnly.js";
 import { createAccessToken } from "../lib/auth/tools.js";
 import passport from "passport";
 
@@ -17,7 +17,7 @@ const authorRouter = express.Router();
 authorRouter.get(
   "/",
   JwtAuthMiddleware,
-  adminOnlyMiddleware,
+  adminMiddleware,
   async (req, res, next) => {
     try {
       const mongoQuery = q2m(req.query);
@@ -61,10 +61,51 @@ authorRouter.get(
   }
 );
 
-authorRouter.get("/me/blogs", basicAuthMiddleware, async (req, res, next) => {
+authorRouter.get("/me/stories", authMiddleware, async (req, res, next) => {
   try {
     const posts = await BlogModel.find({ author: req.author._id });
     res.send(posts);
+  } catch (error) {
+    next(error);
+  }
+});
+
+authorRouter.put("/me", authMiddleware, async (req, res, next) => {
+  try {
+    const author = await authorModel.findByIdAndUpdate(
+      req.author._id,
+      req.body,
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+    if (author) {
+      res.send(author);
+    } else {
+      next(createHttpError(404, `Author with id ${req.params.id} not found!`));
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+authorRouter.get("/me", authMiddleware, async (req, res, next) => {
+  try {
+    res.send(req.author);
+  } catch (error) {
+    next(error);
+  }
+});
+
+authorRouter.delete("/me", authMiddleware, async (req, res, next) => {
+  try {
+    const author = await authorModel.findByIdAndDelete(req.author._id);
+    if (author) {
+      res.status(204).send("Deleted");
+    } else {
+      next(createHttpError(404, `Author with id ${req.params.id} not found!`));
+    }
   } catch (error) {
     next(error);
   }
@@ -85,8 +126,6 @@ authorRouter.post("/login", async (req, res, next) => {
     next(error);
   }
 });
-
-authorRouter.put();
 
 authorRouter.get("/:id", async (req, res, next) => {
   try {
